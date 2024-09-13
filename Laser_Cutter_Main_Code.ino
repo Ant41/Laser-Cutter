@@ -28,14 +28,14 @@ AccelStepper stepperY(motorInterfaceType, stepPinY, dirPinY);; // Defaults to Ac
 
 //Laser Cutter Settings  ////////////////////////////////////////////////////////////////////////
 
-float pulley_radius = 6; //in mm
+const float pulley_radius = 6; //in mm
 float step_precision = 0.0314159/4; //in rad/step. 1.8deg/4 = 0.45deg
 const int motorAccel = 1000;
-const int xySpeedMax = 400; //in steps/s. Equals a max speed of 71mm/s
 const int steps_per_rot = 800; //800 steps per 1 rotation, in quarter mode 
 int laserPower = 100; //in %
-const int cuttingSpeed = 150; //in steps/s
-const int homeSpeed = 100; //in steps/s
+int xySpeedMax = 50; //in mm/s
+int cuttingSpeed = 10; //in mm/s
+int homeSpeed = 5; //in mm/s
 int numberOfPasses = 3; //how many times the program should go over the SD file (How many passes to make for cuts)
 
 //End of printer settings ////////////////////////
@@ -73,6 +73,8 @@ String userResponse = "N";
 boolean testRun = false;
 boolean xNotChangingThisStep = false;
 boolean yNotChangingThisStep = false;
+
+float mmToStep;
 
 //End of variables Section ///////////////////////////
 
@@ -250,6 +252,7 @@ void runXYMotors() {
       stepperX.runSpeed();  
     }
     stepperX.setCurrentPosition(1);
+    
     //move away from end stop slightly
     stepperX.moveTo(150);
     stepperX.setSpeed(homeSpeed);
@@ -263,6 +266,7 @@ void runXYMotors() {
       stepperY.runSpeed();  
     }
     stepperY.setCurrentPosition(1);
+    
     //move away from end stop slightly
     stepperY.moveTo(150);
     stepperY.setSpeed(homeSpeed);
@@ -277,11 +281,6 @@ void runXYMotors() {
     while (stepperX.distanceToGo() != 0 || stepperY.distanceToGo() != 0){ 
       stepperX.runSpeedToPosition(); 
       stepperY.runSpeedToPosition(); 
-      Serial.println(stepperX.distanceToGo());
-      Serial.println(Vx);
-      Serial.println(stepperY.distanceToGo());
-      Serial.println(Vy);
-      Serial.println("");
       if(digitalRead(endStopX1) == LOW || digitalRead(endStopX2) == LOW || digitalRead(endStopY1) == LOW || digitalRead(endStopY2) == LOW){
         Serial.println("End stop triggered. The file footprint is either too big or a mechanical error happened and must be fixed. Solve error and restart laser cutter");
         ESTOP();
@@ -290,7 +289,7 @@ void runXYMotors() {
   }
   else if(xNotChangingThisStep == true && yNotChangingThisStep == false){ //y
     while (stepperY.distanceToGo() != 0){ 
-      stepperY.runSpeed();
+      stepperY.runSpeedToPosition();
       if(digitalRead(endStopX1) == LOW || digitalRead(endStopX2) == LOW || digitalRead(endStopY1) == LOW || digitalRead(endStopY2) == LOW){
         Serial.println("End stop triggered. The file footprint is either too big or a mechanical error happened and must be fixed. Solve error and restart laser cutter");
         ESTOP();
@@ -299,7 +298,7 @@ void runXYMotors() {
   }
   else if(xNotChangingThisStep == false && yNotChangingThisStep == true){ //x
     while (stepperX.distanceToGo() != 0){ 
-      stepperX.runSpeed();
+      stepperX.runSpeedToPosition();
       if(digitalRead(endStopX1) == LOW || digitalRead(endStopX2) == LOW || digitalRead(endStopY1) == LOW || digitalRead(endStopY2) == LOW){
         Serial.println("End stop triggered. The file footprint is either too big or a mechanical error happened and must be fixed. Solve error and restart laser cutter");
         ESTOP();
@@ -459,6 +458,11 @@ void setup() {
   digitalWrite(force5Vpin25, HIGH);
   digitalWrite(force5Vpin27, HIGH);
 
+  //Convert mm/s to step/s
+  mmToStep = steps_per_rot/(2*3.14159*pulley_radius);
+  xySpeedMax = xySpeedMax*mmToStep;
+  homeSpeed = homeSpeed*mmToStep;
+
   stepperX.setMaxSpeed(xySpeedMax);
   stepperX.setAcceleration(motorAccel);
   stepperX.setCurrentPosition(1); //need this to make the motor start moving. Keep it at value of 1
@@ -488,12 +492,12 @@ void setup() {
   delay(2000);
 
   //Go through start-up menu
-//  startUpMenu(); 
+  startUpMenu(); 
 
   //Home the laser cutter
   Serial.println("Homing sequence beginning");
   enableMotors();
-//  homeLaserCutter();
+  homeLaserCutter();
   Serial.println("Homing sequence finished");
 
   myFile = SD.open("test.txt");

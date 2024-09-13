@@ -245,7 +245,6 @@ void runXYMotors() {
   stepperY.setSpeed(Vy);
 
   if(homeInProgress == true){ //home the laser cutter
-    homeSpeed = homeSpeed*mmToStep;
     stepperX.setSpeed(-homeSpeed);
     stepperY.setSpeed(-homeSpeed);
 
@@ -465,6 +464,7 @@ void setup() {
   //Convert mm/s to step/s
   mmToStep = steps_per_rot/(2*3.14159*pulley_radius);
   xySpeedMax = xySpeedMax*mmToStep;
+  homeSpeed = homeSpeed*mmToStep;
 
   stepperX.setMaxSpeed(xySpeedMax);
   stepperX.setAcceleration(motorAccel);
