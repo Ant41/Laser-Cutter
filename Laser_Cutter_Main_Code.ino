@@ -18,7 +18,9 @@ const int endStopY2 = 8;
 const int xMotorEnable = 44; //Low turns the motor on, High turns it off
 const int yMotorEnable = 43; 
 const int laserPWM = 4;
+const int force5Vpin24 = 24;
 const int force5Vpin25 = 25;
+const int force5Vpin26 = 26;
 const int force5Vpin27 = 27;
 
 //// Define motor interface type
@@ -29,9 +31,9 @@ AccelStepper stepperY(motorInterfaceType, stepPinY, dirPinY);; // Defaults to Ac
 //Laser Cutter Settings  ////////////////////////////////////////////////////////////////////////
 
 const float pulley_radius = 6; //in mm
-float step_precision = 0.0314159/4; //in rad/step. 1.8deg/4 = 0.45deg
+float step_precision = 0.0314159/8; //in rad/step. 1.8deg/8 = 0.225deg
 const int motorAccel = 1000;
-const int steps_per_rot = 800; //800 steps per 1 rotation, in quarter mode 
+const int steps_per_rot = 1600; //1600 steps per 1 rotation, in eighth mode 
 int laserPower = 100; //in %
 int xySpeedMax = 50; //in mm/s
 int cuttingSpeed = 10; //in mm/s
@@ -75,6 +77,7 @@ boolean xNotChangingThisStep = false;
 boolean yNotChangingThisStep = false;
 
 float mmToStep;
+float homePosition = 37.5*8; //in steps
 
 //End of variables Section ///////////////////////////
 
@@ -254,7 +257,7 @@ void runXYMotors() {
     stepperX.setCurrentPosition(1);
     
     //move away from end stop slightly
-    stepperX.moveTo(150);
+    stepperX.moveTo(homePosition);
     stepperX.setSpeed(homeSpeed);
     while (stepperX.distanceToGo() != 0){ 
       stepperX.runSpeedToPosition();
@@ -268,7 +271,7 @@ void runXYMotors() {
     stepperY.setCurrentPosition(1);
     
     //move away from end stop slightly
-    stepperY.moveTo(150);
+    stepperY.moveTo(homePosition);
     stepperY.setSpeed(homeSpeed);
     while (stepperY.distanceToGo() != 0){ 
       stepperY.runSpeedToPosition();
@@ -455,7 +458,9 @@ void setup() {
   pinMode(force5Vpin25, OUTPUT);
   pinMode(force5Vpin27, OUTPUT);
 
+  digitalWrite(force5Vpin24, HIGH);
   digitalWrite(force5Vpin25, HIGH);
+  digitalWrite(force5Vpin26, HIGH);
   digitalWrite(force5Vpin27, HIGH);
 
   //Convert mm/s to step/s
