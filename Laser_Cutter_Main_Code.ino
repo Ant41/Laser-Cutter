@@ -30,13 +30,13 @@ AccelStepper stepperY(motorInterfaceType, stepPinY, dirPinY);; // Defaults to Ac
 
 //Laser Cutter Settings  ////////////////////////////////////////////////////////////////////////
 
-const float pulley_radius = 6; //in mm
+const float pulley_radius = 6.3; //in mm
 float step_precision = 0.0314159/8; //in rad/step. 1.8deg/8 = 0.225deg
 const int motorAccel = 1000;
 const int steps_per_rot = 1600; //1600 steps per 1 rotation, in eighth mode 
 int laserPower = 100; //in %
 int xySpeedMax = 50; //in mm/s
-int cuttingSpeed = 10; //in mm/s
+int cuttingSpeed = 3; //in mm/s
 int homeSpeed = 5; //in mm/s
 int numberOfPasses = 3; //how many times the program should go over the SD file (How many passes to make for cuts)
 
