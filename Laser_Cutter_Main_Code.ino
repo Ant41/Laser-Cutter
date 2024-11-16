@@ -34,7 +34,7 @@ const float pulley_radius = 6.3; //in mm
 float step_precision = 0.0314159/8; //in rad/step. 1.8deg/8 = 0.225deg
 const int motorAccel = 1000;
 const int steps_per_rot = 1600; //1600 steps per 1 rotation, in eighth mode 
-int laserPower = 100; //in %
+int laserPower; //in %
 int xySpeedMax = 50; //in mm/s
 int cuttingSpeed = 3; //in mm/s
 int homeSpeed = 5; //in mm/s
@@ -72,6 +72,7 @@ float Vy;
 boolean laserOn = false;
 boolean homeInProgress = false;
 String userResponse = "N";
+String fileName;
 boolean testRun = false;
 boolean xNotChangingThisStep = false;
 boolean yNotChangingThisStep = false;
@@ -336,6 +337,21 @@ void enableMotors(){
 }
 
 void startUpMenu(){
+  Serial.println("Enter laser power in percent (1-100%). Whole values ONLY");
+  laserPower = 0;
+  while(laserPower < 1 || laserPower > 100){
+    while (Serial.available() == 0) {
+      //wait for user input
+    }
+    laserPower = Serial.parseInt();
+  }
+  Serial.println("Enter file name. Example: test.txt");
+  fileName = "N";
+  while (Serial.available() == 0) {
+    //wait for user input
+  }
+  fileName = Serial.readString();
+  
   Serial.println("Is the piece to be cut set up? Enter Y to continue");
   userResponse = "N";
   while(userResponse != "Y"){
@@ -344,6 +360,7 @@ void startUpMenu(){
     }
     userResponse = Serial.readString();
   }
+  
   Serial.println("Is the air supply connected? Enter Y to continue"); 
   userResponse = "N";
   while(userResponse != "Y"){
@@ -352,6 +369,7 @@ void startUpMenu(){
     }
     userResponse = Serial.readString();
   } 
+  
   Serial.println("IMPORTANT: Are your safety glasses on? DO NOT START WITHOUT THEM. Enter Y to continue"); 
   userResponse = "N";
   while(userResponse != "Y"){
@@ -360,6 +378,7 @@ void startUpMenu(){
     }
     userResponse = Serial.readString();
   } 
+  
   Serial.println("Is the protective cover on the laser cutter? DO NOT START WIHTOUT IT. Enter Y to continue"); 
   userResponse = "N";
   while(userResponse != "Y"){
@@ -368,6 +387,7 @@ void startUpMenu(){
     }
     userResponse = Serial.readString();
   }
+  
   Serial.println("Press B to begin laser cutting"); 
   userResponse = "N";
   while(userResponse != "B"){
@@ -505,7 +525,7 @@ void setup() {
   homeLaserCutter();
   Serial.println("Homing sequence finished");
 
-  myFile = SD.open("test.txt");
+  myFile = SD.open(fileName);
   
   //Ask to run through program without laser to test 
   testRunProgram(myFile);
