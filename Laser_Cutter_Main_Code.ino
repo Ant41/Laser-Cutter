@@ -35,8 +35,8 @@ float step_precision = 0.0314159/8; //in rad/step. 1.8deg/8 = 0.225deg
 const int motorAccel = 1000;
 const int steps_per_rot = 1600; //1600 steps per 1 rotation, in eighth mode 
 int laserPower; //in %
-int xySpeedMax = 50; //in mm/s
-int cuttingSpeed = 3; //in mm/s
+int xySpeedMax = 50;//in mm/s
+int cuttingSpeed = 3; //in mm/s (3 is a good speed for cutting) 
 int homeSpeed = 5; //in mm/s
 int numberOfPasses = 3; //how many times the program should go over the SD file (How many passes to make for cuts)
 
@@ -337,14 +337,24 @@ void enableMotors(){
 }
 
 void startUpMenu(){
-  Serial.println("Enter laser power in percent (1-100%). Whole values ONLY");
+  Serial.println("Enter C for cutting or S for shading");
   laserPower = 0;
-  while(laserPower < 1 || laserPower > 100){
+  userResponse = "N";
+  while(userResponse != "C" || userResponse != "S"){
     while (Serial.available() == 0) {
       //wait for user input
     }
-    laserPower = Serial.parseInt();
+    userResponse = Serial.readString();
   }
+  if(userResponse == "C"){
+    laserPower = 100;
+    cuttingSpeed = 3;
+  }
+  else{
+    laserPower = 10;
+    cuttingSpeed = 10;
+  }
+  
   Serial.println("Enter file name. Example: test.txt");
   fileName = "N";
   while (Serial.available() == 0) {
