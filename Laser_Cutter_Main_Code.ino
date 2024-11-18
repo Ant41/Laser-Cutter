@@ -1,3 +1,4 @@
+
 #include <SPI.h>
 #include <SD.h>
 #include <AccelStepper.h>
@@ -36,9 +37,9 @@ const int motorAccel = 1000;
 const int steps_per_rot = 1600; //1600 steps per 1 rotation, in eighth mode 
 int laserPower; //in %
 int xySpeedMax = 50;//in mm/s
-int cuttingSpeed = 3; //in mm/s (3 is a good speed for cutting) 
+int cuttingSpeed; //in mm/s (3 is a good speed for cutting) 
 int homeSpeed = 5; //in mm/s
-int numberOfPasses = 3; //how many times the program should go over the SD file (How many passes to make for cuts)
+int numberOfPasses; //how many times the program should go over the SD file (How many passes to make for cuts)
 
 //End of printer settings ////////////////////////
 
@@ -346,14 +347,17 @@ void startUpMenu(){
     }
     userResponse = Serial.readString();
   }
-  if(userResponse == "C"){
+  if(userResponse == "C"){ 
     laserPower = 100;
     cuttingSpeed = 3;
+    numberOfPasses = 3;
   }
   else{
     laserPower = 10;
     cuttingSpeed = 10;
+    numberOfPasses = 1;
   }
+  laserPower = map(laserPower, 0, 100, 0, 255); //map laser power from percent to PWM output
   
   Serial.println("Enter file name. Example: test.txt");
   fileName = "N";
@@ -435,10 +439,10 @@ void laserCutterMainProgram(File myFile, int numberOfPasses){
 void finishLaserCutterProgram(){
   laserOn = false;
   homeLaserCutter();
-  Serial.println(F("Cutting is done! Restart laser cutter to do another file"));
+  Serial.println(F("Cutting is done! Restart laser cutter to start from the beginning"));
   disableMotors();
   while(1){
-    //turn off laser cutter to do a new part
+    //restart laser cutter to start from the beginning 
   }
 }
 
@@ -470,6 +474,44 @@ void ESTOP(){
   while(1){
     //need to restart laser cutter
   }
+}
+
+void runAnotherFile(){
+  Serial.println("Would you like to run another file? Enter Y to continue"); 
+  userResponse = "N";
+  while(userResponse != "Y"){
+    while (Serial.available() == 0) {
+      //wait for user input
+    }
+    userResponse = Serial.readString();
+  } 
+  if(userResponse == "Y"){
+    disableMotors();
+    laserOn = false;
+    configureLaserCutter();
+  }
+  else{
+    finishLaserCutterProgram();
+  }
+}
+
+void configureLaserCutter(){
+  resetData();
+  delay(2000);
+
+  //Go through start-up menu
+  startUpMenu(); 
+
+  //Home the laser cutter
+  Serial.println("Homing sequence beginning");
+  enableMotors();
+  homeLaserCutter();
+  Serial.println("Homing sequence finished");
+
+  myFile = SD.open(fileName);
+  
+  //Ask to run through program without laser to test 
+  testRunProgram(myFile);
 }
 
 //End of Functions Section /////////////////////////
@@ -519,30 +561,11 @@ void setup() {
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
 
-  resetData();
-
-  //map laser power from percent to PWM output
-  laserPower = map(laserPower, 0, 100, 0, 255); 
- 
-  delay(2000);
-
-  //Go through start-up menu
-  startUpMenu(); 
-
-  //Home the laser cutter
-  Serial.println("Homing sequence beginning");
-  enableMotors();
-  homeLaserCutter();
-  Serial.println("Homing sequence finished");
-
-  myFile = SD.open(fileName);
-  
-  //Ask to run through program without laser to test 
-  testRunProgram(myFile);
+  configureLaserCutter(); //get user input and home the laser cutter
 }
 
 void loop() {
   Serial.println("Starting laser cutting");
   laserCutterMainProgram(myFile, numberOfPasses);
-  finishLaserCutterProgram();
+  runAnotherFile();
 }
