@@ -341,7 +341,7 @@ void startUpMenu(){
   Serial.println("Enter C for cutting or S for shading");
   laserPower = 0;
   userResponse = "N";
-  while(userResponse != "C" || userResponse != "S"){
+  while(userResponse != "C" && userResponse != "S"){
     while (Serial.available() == 0) {
       //wait for user input
     }
