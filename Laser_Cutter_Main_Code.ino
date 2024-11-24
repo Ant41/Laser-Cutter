@@ -354,7 +354,7 @@ void startUpMenu(){
   }
   else{
     laserPower = 10;
-    cuttingSpeed = 10;
+    cuttingSpeed = 3;
     numberOfPasses = 1;
   }
   laserPower = map(laserPower, 0, 100, 0, 255); //map laser power from percent to PWM output
@@ -365,6 +365,7 @@ void startUpMenu(){
     //wait for user input
   }
   fileName = Serial.readString();
+  Serial.println(fileName);
   
   Serial.println("Is the piece to be cut set up? Enter Y to continue");
   userResponse = "N";
