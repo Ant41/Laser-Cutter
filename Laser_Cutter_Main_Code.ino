@@ -350,11 +350,11 @@ void startUpMenu(){
   if(userResponse == "C"){ 
     laserPower = 100;
     cuttingSpeed = 3;
-    numberOfPasses = 3;
+    numberOfPasses = 4;
   }
   else{
-    laserPower = 10;
-    cuttingSpeed = 3;
+    laserPower = 20;
+    cuttingSpeed = 6;
     numberOfPasses = 1;
   }
   laserPower = map(laserPower, 0, 100, 0, 255); //map laser power from percent to PWM output
