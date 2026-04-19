@@ -37,7 +37,9 @@ const int motorAccel = 1000;
 const int steps_per_rot = 1600; //1600 steps per 1 rotation, in eighth mode 
 int laserPower; //in %
 int xySpeedMax = 50;//in mm/s
-int cuttingSpeed; //in mm/s (3 is a good speed for cutting) 
+int cuttingSpeed; //in mm/s (3 is a good speed for cutting)
+int cuttingSpeedTemp; //used to hold temporary speed value
+int cuttingSpeedTestPass = 20; //cutting speed during test pass 
 int homeSpeed = 5; //in mm/s
 int numberOfPasses; //how many times the program should go over the SD file (How many passes to make for cuts)
 
@@ -424,6 +426,9 @@ void laserCutterMainProgram(File myFile, int numberOfPasses){
       if(myFile.available() == 0){
         myFile.seek(0);
         numberOfPasses = numberOfPasses - 1;
+        Serial.print("Passes left: ");
+        Serial.print(numberOfPasses);
+        Serial.println("");
       }
     }
     if(testRun == false){
@@ -460,8 +465,12 @@ void testRunProgram(File myFile){
     Serial.println("Starting test run");
     delay(2000);
     testRun = true;
+    cuttingSpeedTemp = cuttingSpeed;
+    cuttingSpeed = cuttingSpeedTestPass;
     laserCutterMainProgram(myFile, 1); //input is the number of passes
+    cuttingSpeed = cuttingSpeedTemp; //set speed back to normal
     testRun = false;
+    Serial.println("Test run finished");
   }
   else{
     //do nothing
